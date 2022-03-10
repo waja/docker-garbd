@@ -1,0 +1,135 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches:
+      - $default-branch
+      - development
+      - master
+    tags:
+      - '*.*.*-*'
+  # Run tests for any PRs
+  pull_request:
+  schedule:
+    - cron: '43 10 * * 4'
+
+env:
+  IMAGE_NAME: garbd
+
+jobs:
+  codespell:
+    name: codespell
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Codespell
+        uses: codespell-project/actions-codespell@master
+        with:
+          skip: .git
+          check_filenames: true
+          check_hidden: true
+  super-linter:
+    name: super-linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint Code Base
+        uses: github/super-linter@v4.8.5
+        env:
+          DEFAULT_BRANCH: master
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  shiftleft:
+    name: shiftleft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform ShiftLeft Scan
+        uses: ShiftLeftSecurity/scan-action@master
+        env:
+          WORKSPACE: ""
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCAN_AUTO_BUILD: true
+        with:
+          output: reports
+          # Scan auto-detects the languages in your project. To override uncomment the below variable and set the type
+          # type: credscan,java
+          # type: python
+      - name: Upload report
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: reports
+  build:
+    needs:
+      - codespell
+      - super-linter
+      - shiftleft
+    runs-on: ubuntu-latest
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: linux/amd64
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: network=host
+      - name: Build the Docker image
+        id: docker_test
+        uses: docker/build-push-action@v2
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: localhost:5000/foobar/${{ env.IMAGE_NAME }}
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          build-args: |
+            BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            BUILD_VERSION="$(git describe --tags)"
+            VCS_REF="$(git rev-parse --short HEAD)"
+            VCS_URL="$(git config --get remote.origin.url)"
+            VCS_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+      - name: Inspect the Docker image
+        run: |
+          docker buildx imagetools inspect localhost:5000/foobar/${{ env.IMAGE_NAME }}
+      - name: Test the Docker image
+        run: |
+          CONTAINER_OUTPUT=$(docker run --rm -t localhost:5000/foobar/${{ env.IMAGE_NAME }} garbd -h)
+          # shellcheck disable=SC2086
+          TEST_STRING=$(echo ${CONTAINER_OUTPUT} | grep ^Usage | cut -d' ' -f2)
+          if ! [ "${TEST_STRING}" = "garbd" ]; then exit 1; fi
+      - name: Scan image with Container Scan
+        uses: Azure/container-scan@v0
+        env:
+          DOCKER_CONTENT_TRUST: 1
+        with:
+          image-name: localhost:5000/foobar/${{ env.IMAGE_NAME }}
+          severity-threshold: HIGH
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localhost:5000/foobar/${{ env.IMAGE_NAME }}
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+      - name: Run the Anchore scan action itself with GitHub Advanced Security code scanning integration enabled
+        uses: anchore/scan-action@main
+        with:
+          image: localhost:5000/foobar/${{ env.IMAGE_NAME }}
+          acs-report-enable: true
+          fail-build: false
+      - name: Move reports
+        run: mkdir -p sarif-reports && cp ./*results.sarif ./sarif-reports/
+      - name: Upload Reports
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'sarif-reports'
