@@ -1,5 +1,5 @@
 <!-- markdownlint-disable MD045 -->
-# Docker-NGINX
+# Docker-GARBD
 
 [![](https://images.microbadger.com/badges/version/waja/garbd.svg)](https://hub.docker.com/r/waja/garbd/)
 [![](https://images.microbadger.com/badges/image/waja/garbd.svg)](https://hub.docker.com/r/waja/garbd/)

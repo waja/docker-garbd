@@ -105,7 +105,7 @@ jobs:
           CONTAINER_OUTPUT=$(docker run --rm -t localhost:5000/foobar/${{ env.IMAGE_NAME }} garbd -h)
           # shellcheck disable=SC2086
           TEST_STRING=$(echo ${CONTAINER_OUTPUT} | grep ^Usage | cut -d' ' -f2)
-          if ! [ "${TEST_STRING}" = "garbd" ]; then exit 1; fi
+          if ! [ "${TEST_STRING}" = "garbd" ]; then echo "${TEST_STRING} is not even 'garbd'"; exit 1; fi
       - name: Scan image with Container Scan
         uses: Azure/container-scan@v0
         env:
