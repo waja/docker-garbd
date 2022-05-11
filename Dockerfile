@@ -1,4 +1,4 @@
-FROM debian:11.3-slim
+FROM alpine:20220328
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -19,12 +19,11 @@ LABEL maintainer="Jan Wagner <waja@cyconet.org>" \
     org.label-schema.vcs-branch="${VCS_BRANCH:-unknown}" \
     org.opencontainers.image.source="https://github.com/waja/docker-garbd"
 
-# hadolint ignore=DL3017,DL3018,DL3008
-RUN apt-get update && apt-get -y upgrade && \
+# hadolint ignore=DL3017,DL3018
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
+    apk --no-cache update && apk --no-cache upgrade && \
     # Install needed packages
-    apt-get -y install --no-install-recommends galera-arbitrator-4 && \
-    apt-get -y autoremove --purge && \
-    rm -rf /var/lib/apt/lists/* /tmp/* && \
+    apk add --update --no-cache galera-arbitrator && rm -rf /var/cache/apk/* && \
     # create needed directories
     mkdir -p /var/log/garbd/ && \
     # forward request and error logs to docker log collector
@@ -34,4 +33,4 @@ RUN apt-get update && apt-get -y upgrade && \
 STOPSIGNAL SIGTERM
 EXPOSE 4567
 
-CMD ["/usr/bin/garbd","--log","/var/log/garbd/garb.log","--cfg","/etc/garb/garb.cfg"]
+CMD ["/usr/sbin/garbd","--log","/var/log/garbd/garb.log","--cfg","/etc/garb/garb.cfg"]
