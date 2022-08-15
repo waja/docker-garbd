@@ -23,6 +23,7 @@ LABEL maintainer="Jan Wagner <waja@cyconet.org>" \
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
     apk --no-cache update && apk --no-cache upgrade && \
     # Install needed packages
+    apk add --update --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main boost1.80-program_options libcrypto3 libssl3 && \
     apk add --update --no-cache galera-arbitrator && rm -rf /var/cache/apk/* && \
     # create needed directories
     mkdir -p /var/log/garbd/ && \
