@@ -1,0 +1,12 @@
+# https://github.com/Azure/container-scan#ignoring-vulnerabilities
+general:
+  vulnerabilities:
+    - CVE-2021-4044
+    - CVE-2022-0778
+    - CVE-2022-1473
+    - CVE-2022-2097
+#  bestPracticeViolations:
+#    - CIS-DI-0001
+#    - DKL-DI-0006
+#    - CIS-DI-0006
+#    - CIS-DI-0008 
