@@ -22,10 +22,8 @@ LABEL maintainer="Jan Wagner <waja@cyconet.org>" \
     org.opencontainers.image.source="https://github.com/waja/docker-garbd"
 
 # hadolint ignore=DL3017,DL3018
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories && \
-    apk --no-cache update && apk --no-cache upgrade && \
+RUN apk --no-cache update && apk --no-cache upgrade && \
     # Install needed packages
-    apk add --update --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main boost1.82-program_options && \
     apk add --update --no-cache galera-arbitrator && rm -rf /var/cache/apk/* && \
     # create needed directories
     mkdir -p /var/log/garbd/ && \
