@@ -101,7 +101,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.Debian
           platforms: linux/amd64
           build-args: |
             BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -390,7 +390,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.Debian
           platforms: linux/amd64
           build-args: |
             BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -405,7 +405,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.Debian
           #platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           platforms: linux/386,linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
