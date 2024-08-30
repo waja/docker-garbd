@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD045 -->
+
 # Docker-GARBD
 
 [![](https://images.microbadger.com/badges/version/waja/garbd.svg)](https://hub.docker.com/r/waja/garbd/)
@@ -9,4 +10,3 @@
 [![](https://img.shields.io/docker/pulls/waja/garbd.svg)](https://hub.docker.com/r/waja/garbd/)
 [![](https://img.shields.io/docker/stars/waja/garbd.svg)](https://hub.docker.com/r/waja/garbd/)
 [![](https://img.shields.io/docker/automated/waja/garbd.svg)](https://hub.docker.com/r/waja/garbd/)
-
